@@ -24,7 +24,7 @@ def main():
 
     # Create a server socket
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind((socket.gethostname(), server_port))
+    server_socket.bind(("localhost", server_port))
     server_socket.listen(5)
     connected_clients = []
 
@@ -34,6 +34,7 @@ def main():
         client_socket, addr = server_socket.accept()
         print("Got a connection from", addr, "Welcome!")
         connected_clients.append(Client(client_socket, addr))
+        print("Connected clients:", connected_clients.__len__())
 
 
 if __name__ == "__main__":
