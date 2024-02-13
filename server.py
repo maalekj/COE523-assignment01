@@ -1,5 +1,5 @@
 import socket
-
+from server_client_handler import run_client_handler
 
 server_port = 12345
 
@@ -8,6 +8,7 @@ class Client:
     def __init__(self, client_socket, addr):
         self.client_socket = client_socket
         self.addr = addr
+        self.client_handler_thread = run_client_handler(self)
 
     def send(self, message):
         self.client_socket.send(message)
