@@ -3,6 +3,7 @@ import socket
 
 server_port = 12345
 
+
 class Client:
     def __init__(self, client_socket, addr):
         self.client_socket = client_socket
@@ -16,6 +17,7 @@ class Client:
 
     def close(self):
         self.client_socket.close()
+
 
 def main():
     print("Welcoe to the server!")
@@ -32,9 +34,6 @@ def main():
         client_socket, addr = server_socket.accept()
         print("Got a connection from", addr, "Welcome!")
         connected_clients.append(Client(client_socket, addr))
-
-
-
 
 
 if __name__ == "__main__":
