@@ -11,12 +11,23 @@ def connectToServer():
     # Create a socket object
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    # Define the server address and port
-    server_address = ("localhost", 12345)
+    server_ip = input("Enter the server ip: ")
+    server_port = input("Enter the server port: ")
 
-    # Connect to the server
-    client_socket.connect(server_address)
-    print("Connected to server at", server_address)
+    # Define the server address and port
+    try:
+        server_address = (server_ip, int(server_port))
+        # Connect to the server
+        client_socket.connect(server_address)
+        print("Connected to server at", server_address)
+    except ValueError:
+        print("Invalid port number")
+        return False
+    except ConnectionRefusedError:
+        print("couldn't connect to server. Check ip and port")
+        return False
+
+    return True
 
 
 # get user input and do action or send massege to the server
@@ -43,7 +54,13 @@ def sendUserMasseges():
 
 
 if __name__ == "__main__":
-    print("Welcome to the client!")
-    connectToServer()
+    print("Welcome to the chat app")
+
+    # Connect to the server
+    while True:
+        connected = connectToServer()
+        if connected:
+            break
+
     # TODO: Create a thread to handle receiving messages from the server
     sendUserMasseges()  # Run the main function
