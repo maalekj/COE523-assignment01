@@ -5,9 +5,10 @@ server_port = 12345
 
 
 class Client:
-    def __init__(self, client_socket, addr):
+    def __init__(self, client_socket, addr, client_id):
         self.client_socket = client_socket
         self.addr = addr
+        self.client_id = client_id
         self.client_handler_thread = run_client_handler(self)
 
     def send(self, message):
@@ -33,8 +34,18 @@ def main():
     while True:
         # Wait for a connection
         client_socket, addr = server_socket.accept()
-        print("Got a connection from", addr, "Welcome!")
-        connected_clients.append(Client(client_socket, addr))
+
+        # Receive client Connect message with client id
+        message = client_socket.recv(1024).decode()
+        if (
+            message[:8] != "Connect " or len(message) < 8
+        ):  # Check if the message is a Connect message
+            continue  # if a message is not a Connect message, ignore the client
+        else:
+            client_id = message[8:]
+
+        print("Got a connection from", addr, "Welcome ", client_id, "!")
+        connected_clients.append(Client(client_socket, addr, client_id))
         print("Connected clients:", connected_clients.__len__())
 
 

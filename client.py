@@ -3,6 +3,7 @@ import threading
 from enum import Enum
 
 client_socket = None
+client_id = None
 
 
 class MessageType(Enum):
@@ -23,7 +24,7 @@ def getMessageType(message):
 
 # create a socket object and connect to the server
 def connectToServer():
-    global client_socket
+    global client_socket, client_id
 
     # Create a socket object
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -37,6 +38,11 @@ def connectToServer():
         # Connect to the server
         client_socket.connect(server_address)
         print("Connected to server at", server_address)
+
+        # Send the client id to the server
+        message = "Connect " + client_id
+        client_socket.send(message.encode())
+
     except ValueError:
         print("Invalid port number")
         return False
@@ -82,6 +88,8 @@ def sendUserMasseges():
 
 if __name__ == "__main__":
     print("Welcome to the chat app")
+
+    client_id = input("What would you like others to call you?")
 
     # Connect to the server
     while True:
