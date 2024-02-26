@@ -1,8 +1,30 @@
 import threading
 
 
-def client_handler(client):
-    def handle_message(message):
+class Client(threading.Thread):
+    def __init__(self, client_socket, addr):
+        self.client_socket = client_socket
+        self.addr = addr
+        # self.client_id = client_id
+        # self.client_handler_thread = run_client_handler(self)
+        threading.Thread.__init__(self)
+
+    def run(self):
+        while True:
+            message = self.client_socket.recv(1024).decode()
+            print("Received from client:", message)
+            self.handle_message(str(message))
+
+    def send(self, message):
+        self.client_socket.send(message)
+
+    def receive(self):
+        return self.client_socket.recv(1024)
+
+    def close(self):
+        self.client_socket.close()
+
+    def handle_message(self, message):
         # Perform actions based on message content
         if message == "action1":
             # Perform action 1
@@ -14,18 +36,3 @@ def client_handler(client):
             print("Unknown message:", message)
             # Handle unknown message
             pass
-
-    while True:
-        message = client.recv(1024).decode()  # Receive client message
-        if not message:
-            break  # Exit the loop if no message received
-
-        handle_message(message)
-
-    client.close()  # Close the client socket
-
-
-# Example usage
-def run_client_handler(client):
-    thread = threading.Thread(target=client_handler, args=(client.client_socket,))
-    thread.start()
