@@ -16,7 +16,14 @@ class Client(threading.Thread):
     def run(self):
         while True:
             message = self.client_socket.recv(1024).decode()
+            if message == "":
+                print("Client socket is None, exiting")
+                self.close()
+                time.sleep(1)
+                return
+
             print("Received from client:", message)
+
             self.handle_message(str(message))
 
     def send(self, message):
