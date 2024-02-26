@@ -88,6 +88,22 @@ def sendUserMasseges():
     # client_socket.close()
 
 
+def receiveMasseges():
+    global client_socket
+
+    if client_socket is None:
+        print("Client socket is None, exiting")
+        return
+
+    while True:
+        # Receive data from the server
+        data = client_socket.recv(1024)
+        print("\nReceived from server:", data.decode())
+
+    # Close the socket
+    client_socket.close()
+
+
 if __name__ == "__main__":
     print("Welcome to the chat app")
 
@@ -99,5 +115,10 @@ if __name__ == "__main__":
         if connected:
             break
 
-    # TODO: Create a thread to handle receiving messages from the server
+    message_listner = threading.Thread(
+        target=receiveMasseges
+    )  # a thread to handle receiving messages from the server
+
+    message_listner.start()  # start the thread
+
     sendUserMasseges()  # Run the main function
