@@ -11,7 +11,15 @@ def main():
 
     # Create a server socket
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(("localhost", server_port))
+
+    while True:
+        try:
+            server_socket.bind(("localhost", server_port))
+            break
+        except OSError:
+            print("Port", server_port, "is already in use, try again later")
+            time.sleep(10)
+
     server_socket.listen(5)
 
     print("Server is listening on port", server_port, ", waiting for a connection")
