@@ -1,6 +1,7 @@
 import socket
 import threading
 from enum import Enum
+import time
 
 client_socket = None
 client_id = None
@@ -47,6 +48,7 @@ def connectToServer():
         print("Invalid port number")
         return False
     except ConnectionRefusedError:
+        time.sleep(1)
         print("couldn't connect to server. Check ip and port")
         return False
 
@@ -64,7 +66,7 @@ def sendUserMasseges():
     while True:
         # Prompt the user for input
         message = input("Enter a message to send to the server: ")
-
+        # TODO: check if message is empty
         message_type = getMessageType(message)
 
         # if special message, delete first char '@'
