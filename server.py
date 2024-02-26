@@ -3,7 +3,6 @@ import time
 from server_client_handler import Client
 
 server_port = 12345
-connected_clients = {}
 
 
 def main():
@@ -27,20 +26,9 @@ def main():
         # Wait for a connection
         client_socket, addr = server_socket.accept()
 
-        # # Receive client Connect message with client id
-        # message = client_socket.recv(1024).decode()
-        # if (
-        #     message[:8] != "Connect " or len(message) < 8
-        # ):  # Check if the message is a Connect message
-        #     continue  # if a message is not a Connect message, ignore the client
-        # else:
-        #     client_id = message[8:]
-
         print("Got a connection from", addr, "start new thread!")
         new_client = Client(client_socket, addr)
         new_client.start()
-
-        print("Connected clients:", connected_clients.__len__())
 
 
 if __name__ == "__main__":
