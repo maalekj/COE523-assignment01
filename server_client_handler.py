@@ -17,8 +17,12 @@ class Client(threading.Thread):
 
     def run(self):
         while True:
-            message = self.client_socket.recv(1024)
-            message = pickle.loads(message)
+            message = ""
+            try:
+                message = self.client_socket.recv(1024)
+                message = pickle.loads(message)
+            except ConnectionResetError and OSError:
+                pass
             if message == "":
                 print("Client socket is None, exiting")
                 self.close()
@@ -48,7 +52,13 @@ class Client(threading.Thread):
             self.client_id = message[8:]
             connected_clients[self.client_id] = self
 
-        elif message == "action2":
+        elif message == "Quit " + self.client_id:
+            print("client", self.client_id, "is quitting")
+            # remove the client from the connected_clients dictionary
+            if self.client_id in connected_clients:
+                del connected_clients[self.client_id]
+
+            self.close()
             # Perform action 2
             pass
         else:

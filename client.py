@@ -72,8 +72,11 @@ def sendUserMasseges():
 
         # if special message, delete first char '@'
         if message_type != MessageType.general_message:
+            # remove the @ char
             message = message[1:]
-            # TODO: in case of quit, add the client id to the message
+
+            if message_type == MessageType.quit:
+                message = message + " " + client_id
 
         # Send data to the server
         client_socket.send(pickle.dumps(message))
