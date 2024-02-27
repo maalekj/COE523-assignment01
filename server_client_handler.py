@@ -1,3 +1,4 @@
+import pickle
 import threading
 import time
 
@@ -16,19 +17,19 @@ class Client(threading.Thread):
 
     def run(self):
         while True:
-            message = self.client_socket.recv(1024).decode()
+            message = self.client_socket.recv(1024)
+            message = pickle.loads(message)
             if message == "":
                 print("Client socket is None, exiting")
                 self.close()
                 time.sleep(1)
                 return
-
             print("Received from client:", message)
 
             self.handle_message(str(message))
 
     def send(self, message):
-        self.client_socket.send(message.encode())
+        self.client_socket.send(pickle.dumps(message))
 
     def receive(self):
         return self.client_socket.recv(1024)
@@ -40,8 +41,9 @@ class Client(threading.Thread):
         # Perform actions based on message content
         if message[:8] == "Connect " and len(message) >= 8:
             if self.client_id is not None:
-                print("Client id already set")
-                self.send("Client id already set")
+                exception = "Client id already set"
+                print(exception)
+                self.send(exception)
                 return
             self.client_id = message[8:]
             connected_clients[self.client_id] = self

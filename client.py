@@ -1,3 +1,4 @@
+import pickle
 import socket
 import threading
 from enum import Enum
@@ -42,7 +43,7 @@ def connectToServer():
 
         # Send the client id to the server
         message = "Connect " + client_id
-        client_socket.send(message.encode())
+        client_socket.send(pickle.dumps(message))
 
     except ValueError:
         print("Invalid port number")
@@ -75,7 +76,7 @@ def sendUserMasseges():
             # TODO: in case of quit, add the client id to the message
 
         # Send data to the server
-        client_socket.send(message.encode())
+        client_socket.send(pickle.dumps(message))
 
         if message_type == MessageType.quit:
             print("Quitting")
@@ -95,13 +96,21 @@ def receiveMasseges():
         print("Client socket is None, exiting")
         return
 
-    while True:
-        # Receive data from the server
-        data = client_socket.recv(1024)
-        print("\nReceived from server:", data.decode())
+    while not stop_thread:
+        try:
+            # Receive data from the server
+            data = client_socket.recv(1024)
+            data = pickle.loads(data)
+            print("\nReceived from server:", data)
+            if data == "":
+                print("server connection is closed, exiting")
+                client_socket.close()
+                return
 
-    # Close the socket
-    client_socket.close()
+        except ConnectionResetError and EOFError:
+            print("server connection is closed, exiting")
+            client_socket.close()
+            return
 
 
 if __name__ == "__main__":
@@ -119,6 +128,11 @@ if __name__ == "__main__":
         target=receiveMasseges
     )  # a thread to handle receiving messages from the server
 
+    stop_thread = False
     message_listner.start()  # start the thread
 
     sendUserMasseges()  # Run the main function
+
+    # if sendUserMasseges() is done, close the receiveMasseges thread
+    stop_thread = True
+    message_listner.join()
