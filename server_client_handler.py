@@ -61,6 +61,10 @@ class Client(threading.Thread):
             self.close()
             # Perform action 2
             pass
+
+        elif message == "List":
+            connected_clients_ids = list(connected_clients.keys())
+            self.send("Clients##List " + str(connected_clients_ids))
         else:
             print("Unknown message:", message)
             # Handle unknown message

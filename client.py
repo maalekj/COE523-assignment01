@@ -104,12 +104,17 @@ def receiveMasseges():
             # Receive data from the server
             data = client_socket.recv(1024)
             data = pickle.loads(data)
-            print("\nReceived from server:", data)
+
             if data == "":
                 print("server connection is closed, exiting")
                 client_socket.close()
                 return
 
+            if data[:14] == "Clients##List ":
+                data = data[14:]
+                print("available clients:", data)
+                continue
+            print("\nReceived from server:", data)
         except ConnectionResetError and EOFError:
             print("server connection is closed, exiting")
             client_socket.close()
