@@ -66,8 +66,11 @@ def sendUserMasseges():
 
     while True:
         # Prompt the user for input
-        message = input("Enter a message to send to the server: ")
-        # TODO: check if message is empty
+        message = input()
+        # check if message is empty
+        if message == "":
+            continue
+
         message_type = getMessageType(message)
 
         # if special message, delete first char '@'
