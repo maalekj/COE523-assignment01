@@ -6,6 +6,8 @@ import time
 
 client_socket = None
 client_id = None
+stop_thread = False
+KEEP_ALIVE_PERIOD = 0
 
 
 class MessageType(Enum):
@@ -90,7 +92,7 @@ def sendUserMasseges():
 
 
 def receiveMasseges():
-    global client_socket
+    global client_socket, KEEP_ALIVE_PERIOD, stop_thread
 
     if client_socket is None:
         print("Client socket is None, exiting")
@@ -106,16 +108,39 @@ def receiveMasseges():
                 print("server connection is closed, exiting")
                 client_socket.close()
                 return
-
-            if data[:14] == "Clients##List ":
+            elif data[:14] == "Clients##List ":
                 data = data[14:]
                 print("available clients:", data)
                 continue
+            elif data[:11] == "KEEPALIVE##":
+                period_in_seconds = int(data[11:])
+
+                if period_in_seconds > 1:
+                    # in case the server wants the client to send keep alive every 2 seconds or more then the client should send keep alive every period - 1 seconds to be in safe side
+                    KEEP_ALIVE_PERIOD = period_in_seconds - 1
+                else:
+                    # in case the server wants the client to send keep alive every second or less then the client should send keep alive every 0.5 seconds
+                    KEEP_ALIVE_PERIOD = period_in_seconds / 2
+
+                print("KEEP_ALIVE_PERIOD:", KEEP_ALIVE_PERIOD)
+                continue
+
             print("\n", data)
         except ConnectionResetError and EOFError:
             print("server connection is closed, exiting")
             client_socket.close()
             return
+
+
+def sendKeepAlive():
+    global client_socket, KEEP_ALIVE_PERIOD, stop_thread
+    while not stop_thread:
+        if client_socket is not None and KEEP_ALIVE_PERIOD > 0:
+            client_socket.send(pickle.dumps("Alive"))
+            print("sent keep alive")
+            time.sleep(KEEP_ALIVE_PERIOD)
+
+    print("keep alive thread is done")
 
 
 if __name__ == "__main__":
@@ -129,14 +154,15 @@ if __name__ == "__main__":
         if connected:
             break
 
-    message_listner = threading.Thread(
-        target=receiveMasseges
-    )  # a thread to handle receiving messages from the server
-
-    stop_thread = False
+    # a thread to handle receiving messages from the server
+    message_listner = threading.Thread(target=receiveMasseges)
     message_listner.start()  # start the thread
 
-    sendUserMasseges()  # Run the main function
+    # a thread to send keep alive to the server
+    keepAlive_sender = threading.Thread(target=sendKeepAlive)
+    keepAlive_sender.start()  # start the thread
+
+    sendUserMasseges()  # Run the main function that get user input and send it to the server
 
     # if sendUserMasseges() is done, close the receiveMasseges thread
     stop_thread = True

@@ -4,6 +4,7 @@ import time
 
 # shared data with all clients handlers
 connected_clients = {}
+clinets_keep_alive_period_in_seconds = 10
 
 
 class Client(threading.Thread):
@@ -52,6 +53,9 @@ class Client(threading.Thread):
             self.client_id = message[8:]
             connected_clients[self.client_id] = self
 
+            # notify the client that it is connected and the keep alive period that the client should send whithin to be considered alive
+            self.send("KEEPALIVE##" + str(clinets_keep_alive_period_in_seconds))
+
         elif message == "Quit " + self.client_id:
             print("client", self.client_id, "is quitting")
             # remove the client from the connected_clients dictionary
@@ -65,12 +69,16 @@ class Client(threading.Thread):
         elif message == "List":
             connected_clients_ids = list(connected_clients.keys())
             self.send("Clients##List " + str(connected_clients_ids))
+        elif message == "Alive":
+            print("client", self.client_id, "is alive")
+            # Perform action 3
+            pass
         elif " " in message:
             receiver_id, message = message.split(" ", 1)
             if receiver_id in connected_clients:
                 connected_clients[receiver_id].send(self.client_id + ":" + message)
             else:
-                self.send("Client " + receiver_id + " is not connected")
+                self.send("server: Client " + receiver_id + " is not connected")
 
         else:
             self.send("server: Invalid message")
