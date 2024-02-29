@@ -65,7 +65,12 @@ class Client(threading.Thread):
         elif message == "List":
             connected_clients_ids = list(connected_clients.keys())
             self.send("Clients##List " + str(connected_clients_ids))
+        elif " " in message:
+            receiver_id, message = message.split(" ", 1)
+            if receiver_id in connected_clients:
+                connected_clients[receiver_id].send(self.client_id + ":" + message)
+            else:
+                self.send("Client " + receiver_id + " is not connected")
+
         else:
-            print("Unknown message:", message)
-            # Handle unknown message
-            pass
+            self.send("server: Invalid message")

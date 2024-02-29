@@ -111,7 +111,7 @@ def receiveMasseges():
                 data = data[14:]
                 print("available clients:", data)
                 continue
-            print("\nReceived from server:", data)
+            print("\n", data)
         except ConnectionResetError and EOFError:
             print("server connection is closed, exiting")
             client_socket.close()
