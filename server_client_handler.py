@@ -63,16 +63,13 @@ class Client(threading.Thread):
                 del connected_clients[self.client_id]
 
             self.close()
-            # Perform action 2
-            pass
 
         elif message == "List":
             self.send("Clients##List " + str(list(connected_clients.keys())))
 
         elif message == "Alive":
-            print("client", self.client_id, "is alive")
-            # Perform action 3
-            pass
+            # update the last keep alive time
+            self.last_keep_alive = time.time()
 
         elif " " in message:
             receiver_id, message = message.split(" ", 1)
