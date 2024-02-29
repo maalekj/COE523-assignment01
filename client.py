@@ -87,12 +87,6 @@ def sendUserMasseges():
         if message_type == MessageType.quit:
             print("Quitting")
             break
-        # # Receive data from the server
-        # data = client_socket.recv(1024)
-        # print("Received from server:", data.decode())
-
-    # # Close the socket
-    # client_socket.close()
 
 
 def receiveMasseges():
