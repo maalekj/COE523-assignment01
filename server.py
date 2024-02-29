@@ -1,6 +1,7 @@
 import socket
 import time
-from server_client_handler import Client
+import threading
+from server_client_handler import Client, check_clients_alive
 
 server_port = 12345
 
@@ -10,6 +11,10 @@ def main():
 
     # Create a server socket
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    # start keep alive checker thread
+    keep_alive_checker_thread = threading.Thread(target=check_clients_alive)
+    keep_alive_checker_thread.start()
 
     while True:
         try:

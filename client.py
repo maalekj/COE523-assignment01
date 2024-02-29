@@ -60,18 +60,22 @@ def connectToServer():
 
 # get user input and do action or send massege to the server
 def sendUserMasseges():
-    global client_socket
+    global client_socket, client_id, stop_thread
 
     if client_socket is None:
         print("Client socket is None, exiting")
         return
 
-    while True:
+    while not stop_thread:
         # Prompt the user for input
         message = input()
         # check if message is empty
         if message == "":
             continue
+
+        # if stop_thread is True then the client is quitting
+        if stop_thread:
+            break
 
         message_type = getMessageType(message)
 
@@ -110,7 +114,7 @@ def receiveMasseges():
                 return
             elif data[:14] == "Clients##List ":
                 data = data[14:]
-                print("available clients:", data)
+                print("Currently available clients:", data)
                 continue
             elif data[:11] == "KEEPALIVE##":
                 period_in_seconds = int(data[11:])
@@ -129,6 +133,7 @@ def receiveMasseges():
         except ConnectionResetError and EOFError:
             print("server connection is closed, exiting")
             client_socket.close()
+            stop_thread = True
             return
 
 
@@ -136,11 +141,16 @@ def sendKeepAlive():
     global client_socket, KEEP_ALIVE_PERIOD, stop_thread
     while not stop_thread:
         if client_socket is not None and KEEP_ALIVE_PERIOD > 0:
-            client_socket.send(pickle.dumps("Alive"))
-            print("sent keep alive")
+            try:
+                client_socket.send(pickle.dumps("Alive"))
+            except OSError:
+                break
             time.sleep(KEEP_ALIVE_PERIOD)
 
-    print("keep alive thread is done")
+    print("server connection is closed, exiting")
+    client_socket.close()
+    stop_thread = True
+    return
 
 
 if __name__ == "__main__":

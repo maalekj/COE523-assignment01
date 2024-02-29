@@ -12,6 +12,7 @@ class Client(threading.Thread):
         self.client_socket = client_socket
         self.addr = addr
         self.client_id = None
+        self.last_keep_alive = time.time()
         # self.client_id = client_id
         # self.client_handler_thread = run_client_handler(self)
         threading.Thread.__init__(self)
@@ -29,7 +30,6 @@ class Client(threading.Thread):
                 self.close()
                 time.sleep(1)
                 return
-            print("Received from client:", message)
 
             self.handle_message(str(message))
 
@@ -67,12 +67,13 @@ class Client(threading.Thread):
             pass
 
         elif message == "List":
-            connected_clients_ids = list(connected_clients.keys())
-            self.send("Clients##List " + str(connected_clients_ids))
+            self.send("Clients##List " + str(list(connected_clients.keys())))
+
         elif message == "Alive":
             print("client", self.client_id, "is alive")
             # Perform action 3
             pass
+
         elif " " in message:
             receiver_id, message = message.split(" ", 1)
             if receiver_id in connected_clients:
@@ -82,3 +83,26 @@ class Client(threading.Thread):
 
         else:
             self.send("server: Invalid message")
+
+
+def check_clients_alive():
+    while True:
+        for client_id in list(connected_clients.keys()):
+            client = connected_clients[client_id]
+            if (
+                time.time() - client.last_keep_alive
+                > clinets_keep_alive_period_in_seconds
+            ):
+                print("KeepAliveCheck: client", client_id, "got offline!")
+                client.send(
+                    "server: did not get keep alive in time, closing connection"
+                )
+                del connected_clients[client_id]
+                client.close()
+
+                # notify the clients about the new clients list
+                for client_id in list(connected_clients.keys()):
+                    connected_clients[client_id].send(
+                        "Clients##List " + str(list(connected_clients.keys()))
+                    )
+        time.sleep(1)
