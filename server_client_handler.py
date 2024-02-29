@@ -6,6 +6,9 @@ import time
 connected_clients = {}
 clinets_keep_alive_period_in_seconds = 10
 
+connected_clients_lock = threading.Lock()
+client_sending_lock = threading.Lock()
+
 
 class Client(threading.Thread):
     def __init__(self, client_socket, addr):
@@ -34,7 +37,9 @@ class Client(threading.Thread):
             self.handle_message(str(message))
 
     def send(self, message):
+        client_sending_lock.acquire()
         self.client_socket.send(pickle.dumps(message))
+        client_sending_lock.release()
 
     def receive(self):
         return self.client_socket.recv(1024)
@@ -51,20 +56,26 @@ class Client(threading.Thread):
                 self.send(exception)
                 return
             self.client_id = message[8:]
+            connected_clients_lock.acquire()
             connected_clients[self.client_id] = self
-
+            connected_clients_lock.release()
             # notify the client that it is connected and the keep alive period that the client should send whithin to be considered alive
             self.send("KEEPALIVE##" + str(clinets_keep_alive_period_in_seconds))
 
         elif message == "Quit " + self.client_id:
             print("client", self.client_id, "is quitting")
+
+            connected_clients_lock.acquire()
             # remove the client from the connected_clients dictionary
             if self.client_id in connected_clients:
                 del connected_clients[self.client_id]
+            connected_clients_lock.release()
 
             self.close()
 
         elif message == "List":
+
+            # send the connected clients list
             self.send("Clients##List " + str(list(connected_clients.keys())))
 
         elif message == "Alive":
@@ -73,10 +84,12 @@ class Client(threading.Thread):
 
         elif " " in message:
             receiver_id, message = message.split(" ", 1)
+            connected_clients_lock.acquire()
             if receiver_id in connected_clients:
                 connected_clients[receiver_id].send(self.client_id + ":" + message)
             else:
                 self.send("server: Client " + receiver_id + " is not connected")
+            connected_clients_lock.release()
 
         else:
             self.send("server: Invalid message")
@@ -84,6 +97,7 @@ class Client(threading.Thread):
 
 def check_clients_alive():
     while True:
+        connected_clients_lock.acquire()
         for client_id in list(connected_clients.keys()):
             client = connected_clients[client_id]
             if (
@@ -91,9 +105,13 @@ def check_clients_alive():
                 > clinets_keep_alive_period_in_seconds
             ):
                 print("KeepAliveCheck: client", client_id, "got offline!")
-                client.send(
-                    "server: did not get keep alive in time, closing connection"
-                )
+                try:
+
+                    client.send(
+                        "server: did not get keep alive in time, closing connection"
+                    )
+                except BrokenPipeError:
+                    pass
                 del connected_clients[client_id]
                 client.close()
 
@@ -102,4 +120,5 @@ def check_clients_alive():
                     connected_clients[client_id].send(
                         "Clients##List " + str(list(connected_clients.keys()))
                     )
+        connected_clients_lock.release()
         time.sleep(1)

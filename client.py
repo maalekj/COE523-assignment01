@@ -9,6 +9,8 @@ client_id = None
 stop_thread = False
 KEEP_ALIVE_PERIOD = 0
 
+sending_lock = threading.Lock()
+
 
 class MessageType(Enum):
     quit = 1
@@ -43,9 +45,11 @@ def connectToServer():
         client_socket.connect(server_address)
         print("Connected to server at", server_address)
 
+        sending_lock.acquire()
         # Send the client id to the server
         message = "Connect " + client_id
         client_socket.send(pickle.dumps(message))
+        sending_lock.release()
 
     except ValueError:
         print("Invalid port number")
@@ -87,8 +91,10 @@ def sendUserMasseges():
             if message_type == MessageType.quit:
                 message = message + " " + client_id
 
+        sending_lock.acquire()
         # Send data to the server
         client_socket.send(pickle.dumps(message))
+        sending_lock.release()
 
         if message_type == MessageType.quit:
             print("Quitting")
@@ -126,10 +132,9 @@ def receiveMasseges():
                     # in case the server wants the client to send keep alive every second or less then the client should send keep alive every 0.5 seconds
                     KEEP_ALIVE_PERIOD = period_in_seconds / 2
 
-                print("KEEP_ALIVE_PERIOD:", KEEP_ALIVE_PERIOD)
                 continue
 
-            print("\n", data)
+            print(data)
         except ConnectionResetError and EOFError:
             print("server connection is closed, exiting")
             client_socket.close()
@@ -142,7 +147,9 @@ def sendKeepAlive():
     while not stop_thread:
         if client_socket is not None and KEEP_ALIVE_PERIOD > 0:
             try:
+                sending_lock.acquire()
                 client_socket.send(pickle.dumps("Alive"))
+                sending_lock.release()
             except OSError:
                 break
             time.sleep(KEEP_ALIVE_PERIOD)
