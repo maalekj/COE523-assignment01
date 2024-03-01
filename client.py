@@ -163,7 +163,19 @@ def sendKeepAlive():
 if __name__ == "__main__":
     print("Welcome to the chat app")
 
-    client_id = input("What would you like others to call you?")
+    while True:
+        client_id = input("What would you like others to call you?")
+        if client_id == "":
+            print("Client id can't be empty")
+            continue
+        elif len(client_id) > 8:
+            print("Client id can't be more than 8 characters")
+            continue
+        elif " " in client_id:
+            print("Client id can't contain spaces")
+            continue
+        else:
+            break
 
     # Connect to the server
     while True:
