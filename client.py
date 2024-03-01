@@ -156,6 +156,11 @@ def receiveMasseges():
             client_socket.close()
             stop_thread = True
             return
+        except ConnectionResetError:
+            print("server connection is closed, exiting")
+            client_socket.close()
+            stop_thread = True
+            return
 
 
 def sendKeepAlive():

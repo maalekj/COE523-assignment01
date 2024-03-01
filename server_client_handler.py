@@ -130,3 +130,8 @@ def check_clients_alive():
                     )
         connected_clients_lock.release()
         time.sleep(1)
+
+
+def num_of_connected_clients():
+    # return number of connected clients
+    return len(connected_clients)

@@ -1,9 +1,10 @@
 import socket
 import time
 import threading
-from server_client_handler import Client, check_clients_alive
+from server_client_handler import Client, check_clients_alive, num_of_connected_clients
 
 server_port = 12345
+AllowedClientsNumber = 32
 
 
 def main():
@@ -30,6 +31,12 @@ def main():
     while True:
         # Wait for a connection
         client_socket, addr = server_socket.accept()
+
+        print("connected clients:", num_of_connected_clients())
+        if num_of_connected_clients() + 1 > AllowedClientsNumber:
+            print("Too many connected clients, can't accept new connection")
+            client_socket.close()
+            continue
 
         print("Got a connection from", addr, "start new thread!")
         new_client = Client(client_socket, addr)
