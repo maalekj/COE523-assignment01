@@ -24,7 +24,7 @@ class Client(threading.Thread):
         while True:
             message = ""
             try:
-                message = self.client_socket.recv(1024)
+                message = self.client_socket.recv(255)
                 message = pickle.loads(message)
             except ConnectionResetError and OSError:
                 pass
@@ -42,7 +42,7 @@ class Client(threading.Thread):
         client_sending_lock.release()
 
     def receive(self):
-        return self.client_socket.recv(1024)
+        return self.client_socket.recv(255)
 
     def close(self):
         self.client_socket.close()
@@ -83,7 +83,15 @@ class Client(threading.Thread):
             self.last_keep_alive = time.time()
 
         elif " " in message:
-            receiver_id, message = message.split(" ", 1)
+            # message structured should be: first 8 bytes are the receiver id, then 8 bytes for sender id, then the message
+            receiver_id = message[:8].split(" ")[0]
+            sender_id = message[8:16].split(" ")[0]
+            message = message[16:]
+
+            if sender_id != self.client_id:
+                self.send("server: Invalid sender id")
+                return
+
             connected_clients_lock.acquire()
             if receiver_id in connected_clients:
                 connected_clients[receiver_id].send(self.client_id + ":" + message)

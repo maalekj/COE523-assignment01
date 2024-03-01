@@ -73,6 +73,11 @@ def sendUserMasseges():
     while not stop_thread:
         # Prompt the user for input
         message = input()
+
+        if len(message) > 239:
+            print("Message can't be more than 239 characters")
+            continue
+
         # check if message is empty
         if message == "":
             continue
@@ -90,6 +95,13 @@ def sendUserMasseges():
 
             if message_type == MessageType.quit:
                 message = message + " " + client_id
+        else:
+            # if general message get the reciever id that should be before the first space and remove it from the message
+            reciever_id = message.split(" ")[0]
+            message = message[len(reciever_id) + 1 :]
+
+            # structure the message to be first 8 characters the client id and the second 8 characters the reciever id and the rest is the message
+            message = reciever_id.ljust(8) + client_id.ljust(8) + message
 
         sending_lock.acquire()
         # Send data to the server
@@ -111,7 +123,7 @@ def receiveMasseges():
     while not stop_thread:
         try:
             # Receive data from the server
-            data = client_socket.recv(1024)
+            data = client_socket.recv(255)
             data = pickle.loads(data)
 
             if data == "":
