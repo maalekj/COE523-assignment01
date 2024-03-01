@@ -60,7 +60,9 @@ def connectToServer():
         return False
     except ConnectionRefusedError:
         time.sleep(1)
-        print("couldn't connect to server. Check ip and port")
+        print(
+            "couldn't connect to server. Check ip and port and that the server is running"
+        )
         return False
 
     return True
@@ -71,8 +73,12 @@ def sendUserMasseges():
     global client_socket, client_id, stop_thread
 
     if client_socket is None:
-        print("Client socket is None, exiting")
+        # print("Client socket is None, exiting")
         return
+
+    print(
+        "You can send a message to a specific client by typing 'client_id message' or type '@List' to get the list of connected clients or type '@Quit' to quit"
+    )
 
     while not stop_thread:
         # Prompt the user for input
@@ -134,8 +140,8 @@ def receiveMasseges():
                 print("server connection is closed, exiting")
                 client_socket.close()
                 return
-            elif data[:14] == "Clients##List ":
-                data = data[14:]
+            elif data[:13] == "Clients##List":
+                data = data[13:]
                 print("Currently available clients:", data)
                 continue
             elif data[:11] == "KEEPALIVE##":
@@ -151,12 +157,7 @@ def receiveMasseges():
                 continue
 
             print(data)
-        except ConnectionResetError and EOFError:
-            print("server connection is closed, exiting")
-            client_socket.close()
-            stop_thread = True
-            return
-        except ConnectionResetError:
+        except ConnectionResetError and EOFError and ConnectionResetError:
             print("server connection is closed, exiting")
             client_socket.close()
             stop_thread = True

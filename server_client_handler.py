@@ -29,7 +29,7 @@ class Client(threading.Thread):
             except ConnectionResetError and OSError:
                 pass
             if message == "":
-                print("Client socket is None, exiting")
+                print("Client socket of client" + self.client_id + "is None, exiting")
                 self.close()
                 time.sleep(1)
                 return
@@ -51,9 +51,7 @@ class Client(threading.Thread):
         # Perform actions based on message content
         if message[:8] == "Connect " and len(message) >= 8:
             if self.client_id is not None:
-                exception = "Client id already set"
-                print(exception)
-                self.send(exception)
+                self.send("server: You are already connected!")
                 return
             self.client_id = message[8:]
             connected_clients_lock.acquire()
@@ -71,12 +69,17 @@ class Client(threading.Thread):
                 del connected_clients[self.client_id]
             connected_clients_lock.release()
 
+            # notify the clients about the new clients list
+            for client_id in list(connected_clients.keys()):
+                connected_clients[client_id].send(
+                    "Clients##List" + str(list(connected_clients.keys()))
+                )
             self.close()
 
         elif message == "List":
 
             # send the connected clients list
-            self.send("Clients##List " + str(list(connected_clients.keys())))
+            self.send("Clients##List" + str(list(connected_clients.keys())))
 
         elif message == "Alive":
             # update the last keep alive time
@@ -126,7 +129,7 @@ def check_clients_alive():
                 # notify the clients about the new clients list
                 for client_id in list(connected_clients.keys()):
                     connected_clients[client_id].send(
-                        "Clients##List " + str(list(connected_clients.keys()))
+                        "Clients##List" + str(list(connected_clients.keys()))
                     )
         connected_clients_lock.release()
         time.sleep(1)

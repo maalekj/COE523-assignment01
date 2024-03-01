@@ -32,7 +32,6 @@ def main():
         # Wait for a connection
         client_socket, addr = server_socket.accept()
 
-        print("connected clients:", num_of_connected_clients())
         if num_of_connected_clients() + 1 > AllowedClientsNumber:
             print("Too many connected clients, can't accept new connection")
             client_socket.close()
