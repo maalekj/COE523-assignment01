@@ -37,6 +37,9 @@ class Client(threading.Thread):
             self.handle_message(str(message))
 
     def send(self, message):
+        if len(message) > 255:
+            print("Message is too long, will send only the first 255 bytes")
+            message = message[:255]
         client_sending_lock.acquire()
         self.client_socket.send(pickle.dumps(message))
         client_sending_lock.release()

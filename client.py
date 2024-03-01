@@ -134,13 +134,15 @@ def receiveMasseges():
         try:
             # Receive data from the server
             data = client_socket.recv(255)
-            data = pickle.loads(data)
 
             if data == "":
                 print("server connection is closed, exiting")
                 client_socket.close()
                 return
-            elif data[:13] == "Clients##List":
+            else:
+                data = pickle.loads(data)
+
+            if data[:13] == "Clients##List":
                 data = data[13:]
                 print("Currently available clients:", data)
                 continue
