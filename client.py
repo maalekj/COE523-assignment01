@@ -35,8 +35,12 @@ def connectToServer():
     # Create a socket object
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    server_ip = input("Enter the server ip: ")
-    server_port = input("Enter the server port: ")
+    if False:
+        server_ip = input("Enter the server ip: ")
+        server_port = input("Enter the server port: ")
+    else:
+        server_ip = "localhost"
+        server_port = "12345"
 
     # Define the server address and port
     try:
