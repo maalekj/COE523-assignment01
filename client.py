@@ -159,7 +159,9 @@ def receiveMasseges():
                 continue
 
             print(data)
-        except ConnectionResetError and EOFError and ConnectionResetError:
+
+        # catch the exceptions EOFError and ConnectionResetError to close the client socket and exit the thread
+        except (EOFError, ConnectionResetError):
             print("server connection is closed, exiting")
             client_socket.close()
             stop_thread = True
